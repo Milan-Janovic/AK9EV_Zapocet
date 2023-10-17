@@ -1,149 +1,147 @@
-import math
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 
-# 1. Rosenbrock Function
-def rosenbrock(x, y):
-    return (1 - x) ** 2 + 100 * (y - x ** 2) ** 2
+def identity(v):
+    x = np.linalg.norm(v)
+    return x
 
 
-# 2. Beale's Function
-def beale(x, y):
-    return (1.5 - x + x * y) ** 2 + (2.25 - x + x * y ** 2) ** 2 + (2.625 - x + x * y ** 3) ** 2
+def linear(v):
+    x = np.linalg.norm(v)
+    return 2 * x
 
 
-# 3. Matyas Function
-def matyas(x, y):
-    return 0.26 * (x ** 2 + y ** 2) - 0.48 * x * y
+def parabola(v):
+    x = np.linalg.norm(v)
+    return x ** 2
 
 
-# 4. Himmelblau's Function
-def himmelblau(x, y):
-    return (x ** 2 + y - 11) ** 2 + (x + y ** 2 - 7) ** 2
+def sinus(v):
+    x = np.linalg.norm(v)
+    return np.sin(x)
 
 
-# 5. Ackley's Function
-def ackley(x, y):
-    return -20 * math.exp(-0.2 * math.sqrt(0.5 * (x ** 2 + y ** 2))) - \
-        math.exp(0.5 * (math.cos(2 * math.pi * x) + math.cos(2 * math.pi * y))) + math.e + 20
+def cosinus(v):
+    x = np.linalg.norm(v)
+    return np.cos(x)
 
 
-# 6. Levy Function
-def levy(x, y):
-    return math.sin(3 * math.pi * x) ** 2 + (x - 1) ** 2 * (1 + math.sin(3 * math.pi * y) ** 2) + \
-        (y - 1) ** 2 * (1 + math.sin(2 * math.pi * y) ** 2)
+def exponential_growth(v):
+    x = np.linalg.norm(v)
+    return 2 ** x
 
 
-# 7. Easom Function
-def easom(x, y):
-    return -math.cos(x) * math.cos(y) * math.exp(-(x - math.pi) ** 2 - (y - math.pi) ** 2)
+def exponential_decay(v):
+    x = np.linalg.norm(v)
+    return 2 ** (-x)
 
 
-# 8. Six-Hump Camel Back Function
-def six_hump_camel_back(x, y):
-    return (4 - 2.1 * x ** 2 + x ** 4 / 3) * x ** 2 + x * y + (-4 + 4 * y ** 2) * y ** 2
+def sigmoid(v):
+    x = np.linalg.norm(v)
+    return 1 / (1 + np.exp(-x))
 
 
-# 9. Cross-in-Tray Function
-def cross_in_tray(x, y):
-    return -0.0001 * (
-                abs(math.sin(x) * math.sin(y) * math.exp(abs(100 - (math.sqrt(x ** 2 + y ** 2) / math.pi)))) + 1) ** 0.1
+def triangle(v):
+    x = np.linalg.norm(v)
+    return np.abs(x % 4 - 2) - 1
 
 
-# 10. Eggholder Function
-def eggholder(x, y):
-    return -(y + 47) * math.sin(math.sqrt(abs(x / 2 + (y + 47)))) - x * math.sin(math.sqrt(abs(x - (y + 47))))
+def quadratic_sine(v):
+    x = np.linalg.norm(v)
+    return np.sin(x) + 0.5 * np.sin(2 * x)
 
 
-# 11. Holder Table Function
-def holder_table(x, y):
-    return -abs(math.sin(x) * math.cos(y) * math.exp(abs(1 - (math.sqrt(x ** 2 + y ** 2) / math.pi))))
+def gaussian_bell(v):
+    x = np.linalg.norm(v)
+    return np.exp(-x ** 2)
 
 
-# 12. Rastrigin Function
-def rastrigin(x, y):
-    return 20 + (x ** 2 - 10 * math.cos(2 * math.pi * x)) + (y ** 2 - 10 * math.cos(2 * math.pi * y))
+def sawtooth(v):
+    x = np.linalg.norm(v)
+    return 2 * (x % 1) - 1
 
 
-# 13. Schaffer Function N. 2
-def schaffer_N2(x, y):
-    return 0.5 + ((math.sin(x ** 2 - y ** 2) ** 2 - 0.5) / (1 + 0.001 * (x ** 2 + y ** 2)) ** 2)
+def tanh(v):
+    x = np.linalg.norm(v)
+    return np.tanh(x)
 
 
-# 14. Styblinski-Tang Function
-def styblinski_tang(x, y):
-    return 0.5 * (x ** 4 - 16 * x ** 2 + 5 * x + y ** 4 - 16 * y ** 2 + 5 * y)
+def logistic_sigmoid(v):
+    x = np.linalg.norm(v)
+    return 1 / (1 + np.exp(-x))
 
 
-# 15. Bukin Function N. 6
-def bukin_N6(x, y):
-    return 100 * math.sqrt(abs(y - 0.01 * x ** 2)) + 0.01 * abs(x + 10)
+def quadratic_growth(v):
+    x = np.linalg.norm(v)
+    return x ** 2 + 1
 
 
-# 16. Drop-Wave Function
-def drop_wave(x, y):
-    return - (1 + math.cos(12 * math.sqrt(x ** 2 + y ** 2))) / (0.5 * (x ** 2 + y ** 2) + 2)
+def quadratic_decay(v):
+    x = np.linalg.norm(v)
+    return -x ** 2 + 1
 
 
-# 17. Schwefel Function N. 2.21
-def schwefel_N221(x, y):
-    return max(abs(x), abs(y))
+def square_root(v):
+    x = np.linalg.norm(v)
+    return np.sqrt(x)
 
 
-# 18. Schwefel Function N. 2.22
-def schwefel_N222(x, y):
-    return abs(x) + abs(y) + abs(x * y)
+def cubic(v):
+    x = np.linalg.norm(v)
+    return x ** 3
 
 
-# 19. Schwefel Function N. 2.23
-def schwefel_N223(x, y):
-    return abs(x ** 2 - y) + abs(x - 2 * y ** 2 + 1)
+def logarithmic(v):
+    x = np.linalg.norm(v)
+    return np.log(x + 1)
 
 
-# 20. Schwefel Function N. 2.26
-def schwefel_N226(x, y):
-    return 0.01 * (x ** 2 + y ** 2) + math.sin(x ** 2 + y ** 2)
+def power(v):
+    x = np.linalg.norm(v)
+    return x ** 3
 
 
-# 21. Levi N.13 Function
-def levi_N13(x, y):
-    return math.sin(3 * math.pi * x) ** 2 + (x - 1) ** 2 * (1 + math.sin(3 * math.pi * y) ** 2) + \
-        (y - 1) ** 2 * (1 + math.sin(2 * math.pi * y) ** 2)
+def reuleaux_triangle(v):
+    x = np.linalg.norm(v)
+    return np.maximum.reduce([np.abs(x), np.abs(x - 2), np.abs(x + 2)]) - 1
 
 
-# 22. Dixon-Price Function
-def dixon_price(x, y):
-    return (x - 1) ** 2 + 2 * (2 * y ** 2 - x) ** 2
+def dirichlet(v):
+    x = np.linalg.norm(v)
+    return np.sin(x) / np.where(x == 0, 1, x)  # Avoid division by zero
 
 
-# 23. Three-Hump Camel Function
-def three_hump_camel(x, y):
-    return 2 * x ** 2 - 1.05 * x ** 4 + (x ** 6 / 6) + x * y + y ** 2
+def logarithmic_growth(v):
+    x = np.linalg.norm(v)
+    return np.log(x + 1)
 
 
-# 24. Shubert's Function
-def shubert(x, y):
-    result = 0
-    for i in range(1, 6):
-        result += i * math.cos((i + 1) * x + i) * i * math.cos((i + 1) * y + i)
-    return result
+def logarithmic_decay(v):
+    x = np.linalg.norm(v)
+    return -np.log(x + 1)
 
 
-# 25. Michalewicz Function
-def michalewicz(x, y):
-    return -math.sin(x) * (math.sin(x ** 2 / math.pi) ** 20) - math.sin(y) * (math.sin(2 * y ** 2 / math.pi))
+def inverted_sine(v):
+    x = np.linalg.norm(v)
+    return -np.sin(x)
+
+
+def hyperbolic_cosine(v):
+    x = np.linalg.norm(v)
+    return np.cosh(x)
 
 
 def plot_function(func):
     filename2D = "2D Contour Plot - " + func.__name__
     filename3D = "3D Surface Plot - " + func.__name__
-    func_vec = np.vectorize(func)
+
     x = np.linspace(-100, 100, 1000)
     y = np.linspace(-100, 100, 1000)
     X, Y = np.meshgrid(x, y)
-    Z = func_vec(X, Y)
+
+    # Applying the function element-wise
+    Z = np.vectorize(lambda i, j: func(np.array([i, j])))(X, Y)
 
     # 2D plot
     plt.figure(figsize=(10, 6))
@@ -172,12 +170,358 @@ def plot_function(func):
 
 
 # Define Array containing all the functions
-functions = [rosenbrock, beale, matyas, himmelblau, ackley,
-             levy, easom, six_hump_camel_back, cross_in_tray, eggholder,
-             holder_table, rastrigin, schaffer_N2, styblinski_tang, bukin_N6,
-             drop_wave, schwefel_N221, schwefel_N222, schwefel_N223, schwefel_N226,
-             levi_N13, dixon_price, three_hump_camel, shubert, michalewicz]
+functions = [
+    identity,
+    linear,
+    parabola,
+    sinus,
+    cosinus,
+    exponential_growth,
+    exponential_decay,
+    sigmoid,
+    triangle,
+    quadratic_sine,
+    gaussian_bell,
+    sawtooth,
+    tanh,
+    logistic_sigmoid,
+    quadratic_growth,
+    quadratic_decay,
+    square_root,
+    cubic,
+    logarithmic,
+    power,
+    reuleaux_triangle,
+    dirichlet,
+    logarithmic_growth,
+    logarithmic_decay,
+    inverted_sine,
+]
 
 # Create 2D & 3D plots for all the functions
-for test_function in functions:
-    plot_function(test_function)
+#for test_function in functions:
+    #plot_function(test_function)
+
+
+def differential_evolution(func, D, bounds, FEs, repetitions=30):
+    # Define population size based on dimension
+    if D == 2:
+        NP = 10
+    elif D == 10:
+        NP = 20
+    elif D == 30:
+        NP = 50
+    else:
+        raise ValueError("Unsupported dimension!")
+
+    CR = 0.9  # Crossover probability
+    F = 0.8  # Differential weight
+
+    results = []
+
+    for _ in range(repetitions):
+        # Initialize population
+        pop = np.random.rand(NP, D) * (bounds[:, 1] - bounds[:, 0]) + bounds[:, 0]
+
+        for _ in range(int(FEs / D)):
+            for i in range(NP):
+                # Mutation: rand/1
+                a, b, c = pop[np.random.choice(NP, 3, replace=False)]
+                mutant = a + F * (b - c)
+
+                # Crossover: bin
+                cross_points = np.random.rand(D) < CR
+                if not np.any(cross_points):
+                    cross_points[np.random.randint(0, D)] = True
+
+                trial = np.where(cross_points, mutant, pop[i])
+
+                # Reflection for boundary control
+                trial = np.where(trial < bounds[:, 0], 2 * bounds[:, 0] - trial, trial)
+                trial = np.where(trial > bounds[:, 1], 2 * bounds[:, 1] - trial, trial)
+
+                # Selection
+                if func(trial) < func(pop[i]):
+                    pop[i] = trial
+
+        results.append(func(pop[np.argmin([func(ind) for ind in pop])]))
+
+    return results
+
+def differential_evolution_best(func, D, bounds, FEs, repetitions=30):
+    # Define population size based on dimension
+    if D == 2:
+        NP = 10
+    elif D == 10:
+        NP = 20
+    elif D == 30:
+        NP = 50
+    else:
+        raise ValueError("Unsupported dimension!")
+
+    CR = 0.9  # Crossover probability
+    F = 0.5  # Differential weight
+
+    results = []
+
+    for _ in range(repetitions):
+        # Initialize population
+        pop = np.random.rand(NP, D) * (bounds[:, 1] - bounds[:, 0]) + bounds[:, 0]
+
+        for _ in range(int(FEs / D)):
+            best = pop[np.argmin([func(ind) for ind in pop])]
+
+            for i in range(NP):
+                # Mutation: best/1
+                a, b = pop[np.random.choice(NP, 2, replace=False)]
+                mutant = best + F * (a - b)
+
+                # Crossover: bin
+                cross_points = np.random.rand(D) < CR
+                if not np.any(cross_points):
+                    cross_points[np.random.randint(0, D)] = True
+
+                trial = np.where(cross_points, mutant, pop[i])
+
+                # Reflection for boundary control
+                trial = np.where(trial < bounds[:, 0], 2 * bounds[:, 0] - trial, trial)
+                trial = np.where(trial > bounds[:, 1], 2 * bounds[:, 1] - trial, trial)
+
+                # Selection
+                if func(trial) < func(pop[i]):
+                    pop[i] = trial
+
+        results.append(func(pop[np.argmin([func(ind) for ind in pop])]))
+
+    return results
+
+
+def pso(func, D, bounds, FEs, repetitions=30, w=0.5, c1=1.5, c2=1.5):
+    if D == 2:
+        NP = 10
+    elif D == 10:
+        NP = 20
+    elif D == 30:
+        NP = 50
+    else:
+        raise ValueError("Unsupported dimension!")
+
+    # Maximum velocity
+    v_max = (bounds[:, 1] - bounds[:, 0]) * 0.1
+
+    results = []
+    for _ in range(repetitions):
+        positions = np.random.rand(NP, D) * (bounds[:, 1] - bounds[:, 0]) + bounds[:, 0]
+        velocities = np.random.rand(NP, D) * (bounds[:, 1] - bounds[:, 0]) + bounds[:, 0]
+        personal_best_positions = np.copy(positions)
+        personal_best_scores = np.array([func(ind) for ind in positions])
+        global_best_position = positions[np.argmin(personal_best_scores)]
+
+        for _ in range(int(FEs / NP)):
+            for i in range(NP):
+                random_p = np.random.rand(D)
+                random_g = np.random.rand(D)
+
+                # Update velocities and clamp them
+                velocities[i] = w * velocities[i] + c1 * random_p * (
+                            personal_best_positions[i] - positions[i]) + c2 * random_g * (
+                                            global_best_position - positions[i])
+                velocities[i] = np.clip(velocities[i], -v_max, v_max)
+
+                # Update positions and handle boundary conditions using reflection
+                positions[i] += velocities[i]
+                positions[i] = np.where(positions[i] < bounds[:, 0], 2 * bounds[:, 0] - positions[i], positions[i])
+                positions[i] = np.where(positions[i] > bounds[:, 1], 2 * bounds[:, 1] - positions[i], positions[i])
+
+                # Update personal best
+                if func(positions[i]) < personal_best_scores[i]:
+                    personal_best_scores[i] = func(positions[i])
+                    personal_best_positions[i] = positions[i]
+
+            # Update global best
+            global_best_position = personal_best_positions[np.argmin(personal_best_scores)]
+
+        results.append(func(global_best_position))
+
+    return results
+
+def soma_all_to_one(func, D, bounds, FEs, repetitions=30, PathLength=3, StepSize=0.11, PRT=0.7):
+    # Define population size based on dimension
+    if D == 2:
+        NP = 10
+    elif D == 10:
+        NP = 20
+    elif D == 30:
+        NP = 50
+    else:
+        raise ValueError("Unsupported dimension!")
+
+    results = []
+
+    for _ in range(repetitions):
+        # Initialize population
+        pop = np.random.rand(NP, D) * (bounds[:, 1] - bounds[:, 0]) + bounds[:, 0]
+
+        for _ in range(int(FEs / D)):
+            # Find the best individual
+            leader = pop[np.argmin([func(ind) for ind in pop])]
+
+            # Migrate all individuals towards the leader
+            for i in range(NP):
+                if not np.array_equal(pop[i], leader):  # Ensure we're not trying to migrate the leader to itself
+                    journey = (leader - pop[i]) * PathLength
+                    steps = int(PathLength / StepSize)
+
+                    # Follow the path towards the leader in steps
+                    for step in range(steps):
+                        # Generate a random vector for PRT perturbation
+                        prt_vector = np.where(np.random.rand(D) < PRT, 1, 0)
+
+                        # Calculate the new position using the StepSize and perturbation
+                        new_pos = pop[i] + StepSize * journey * prt_vector
+
+                        # Reflection for boundary control
+                        new_pos = np.where(new_pos < bounds[:, 0], 2 * bounds[:, 0] - new_pos, new_pos)
+                        new_pos = np.where(new_pos > bounds[:, 1], 2 * bounds[:, 1] - new_pos, new_pos)
+
+                        # Accept the new position if it has a better fitness
+                        if func(new_pos) < func(pop[i]):
+                            pop[i] = new_pos
+
+        results.append(func(pop[np.argmin([func(ind) for ind in pop])]))
+
+    return results
+
+def soma_all_to_all(func, D, bounds, FEs, repetitions=30, PathLength=3, StepSize=0.11, PRT=0.7):
+    # Define population size based on dimension
+    if D == 2:
+        NP = 10
+    elif D == 10:
+        NP = 20
+    elif D == 30:
+        NP = 50
+    else:
+        raise ValueError("Unsupported dimension!")
+
+    results = []
+
+    for _ in range(repetitions):
+        # Initialize population
+        pop = np.random.rand(NP, D) * (bounds[:, 1] - bounds[:, 0]) + bounds[:, 0]
+
+        for _ in range(int(FEs / NP)):
+            # For each individual in the population
+            for i in range(NP):
+                # Migrate towards every other individual
+                for j in range(NP):
+                    if not np.array_equal(pop[i], pop[j]):  # Ensure we're not trying to migrate an individual to itself
+                        journey = (pop[j] - pop[i]) * PathLength
+                        steps = int(PathLength / StepSize)
+
+                        # Follow the path towards the target individual in steps
+                        for step in range(steps):
+                            # Generate a random vector for PRT perturbation
+                            prt_vector = np.where(np.random.rand(D) < PRT, 1, 0)
+
+                            # Calculate the new position using the StepSize and perturbation
+                            new_pos = pop[i] + StepSize * journey * prt_vector
+
+                            # Reflection for boundary control
+                            new_pos = np.where(new_pos < bounds[:, 0], 2 * bounds[:, 0] - new_pos, new_pos)
+                            new_pos = np.where(new_pos > bounds[:, 1], 2 * bounds[:, 1] - new_pos, new_pos)
+
+                            # Accept the new position if it has a better fitness
+                            if func(new_pos) < func(pop[i]):
+                                pop[i] = new_pos
+
+        results.append(func(pop[np.argmin([func(ind) for ind in pop])]))
+
+    return results
+
+
+# Example usage:
+bounds = np.array([[-100, 100] for _ in range(2)])
+results_2D = differential_evolution(parabola, 2, bounds, 2 * 2000)
+print("2D Results (rand/1/bin):", results_2D)
+
+bounds = np.array([[-100, 100] for _ in range(10)])
+results_10D = differential_evolution(parabola, 10, bounds, 10 * 2000)
+print("10D Results (rand/1/bin):", results_10D)
+
+bounds = np.array([[-100, 100] for _ in range(30)])
+results_30D = differential_evolution(parabola, 30, bounds, 30 * 2000)
+print("30D Results (rand/1/bin):", results_30D)
+
+
+# Example usage:
+bounds = np.array([[-100, 100] for _ in range(2)])
+results_2D_best = differential_evolution_best(parabola, 2, bounds, 2 * 2000)
+print("2D Results (best/1/bin):", results_2D_best)
+
+bounds = np.array([[-100, 100] for _ in range(10)])
+results_10D_best = differential_evolution_best(parabola, 10, bounds, 10 * 2000)
+print("10D Results (best/1/bin):", results_10D_best)
+
+bounds = np.array([[-100, 100] for _ in range(30)])
+results_30D_best = differential_evolution_best(parabola, 30, bounds, 30 * 2000)
+print("30D Results (best/1/bin):", results_30D_best)
+
+
+# Example usage:
+bounds = np.array([[-100, 100] for _ in range(2)])
+results_2D_pso = pso(parabola, 2, bounds, 2 * 2000)
+print("2D Results (PSO):", results_2D_pso)
+
+bounds = np.array([[-100, 100] for _ in range(10)])
+results_10D_pso = pso(parabola, 10, bounds, 10 * 2000)
+print("10D Results (PSO):", results_10D_pso)
+
+bounds = np.array([[-100, 100] for _ in range(30)])
+results_30D_pso = pso(parabola, 30, bounds, 30 * 2000)
+print("30D Results (PSO):", results_30D_pso)
+
+
+# Example usage:
+bounds = np.array([[-100, 100] for _ in range(2)])
+results_2D_soma = soma_all_to_one(parabola, 2, bounds, 2 * 2000)
+print("2D Results (SOMA All-to-One):", results_2D_soma)
+
+bounds = np.array([[-100, 100] for _ in range(10)])
+results_10D_soma = soma_all_to_one(parabola, 10, bounds, 10 * 2000)
+print("10D Results (SOMA All-to-One):", results_10D_soma)
+
+bounds = np.array([[-100, 100] for _ in range(30)])
+results_30D_soma = soma_all_to_one(parabola, 30, bounds, 30 * 2000)
+print("30D Results (SOMA All-to-One):", results_30D_soma)
+
+
+# Example usage:
+bounds = np.array([[-100, 100] for _ in range(2)])
+results_2D_soma = soma_all_to_all(parabola, 2, bounds, 2 * 2000)
+
+bounds = np.array([[-100, 100] for _ in range(10)])
+results_10D_soma = soma_all_to_all(parabola, 10, bounds, 10 * 2000)
+
+bounds = np.array([[-100, 100] for _ in range(30)])
+results_30D_soma = soma_all_to_all(parabola, 30, bounds, 30 * 2000)
+
+print("2D Results (SOMA All-to-All):", results_2D_soma)
+print("10D Results (SOMA All-to-All):", results_10D_soma)
+print("30D Results (SOMA All-to-All):", results_30D_soma)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
