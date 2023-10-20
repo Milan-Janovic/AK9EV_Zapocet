@@ -501,174 +501,207 @@ def soma_all_to_all(func, D, bounds, FEs, repetitions=30, PathLength=3, StepSize
     return results
 
 
+def calculate_list_AVG(list_to_be_summed):
+    return np.mean(list_to_be_summed)
+
+def print_results(func_name, dimensions, results , algorithm_name, AVG):
+    results=[]
+    return f"AVG for {func_name.upper()} with {algorithm_name.upper()} {dimensions} algorithm:", f"{AVG}"
+    #return f"Results for {func_name.upper()} with {algorithm_name.upper()} {dimensions} algorithm:", results, f"AVG = {AVG}"
+
+def write_to_file(file_name, data_tuple):
+    # Convert tuple to string
+    data_str = '\n'.join(map(str, data_tuple))
+    with open(file_name, "a") as file:
+        # Append the new data to the file
+        file.write(data_str)
+        file.write('\n')  # add a newline for separation
+
+
+bounds_2D = np.array([[-100, 100] for _ in range(2)])
+bounds_10D = np.array([[-100, 100] for _ in range(10)])
+bounds_30D = np.array([[-100, 100] for _ in range(30)])
+
+def run_algo_over_functions_2D(algo):
+    iteration = 0
+    for func in functions:
+        start_time = time.time()
+        result = algo(func, 2, bounds_2D, 2 * 2000)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        avg = calculate_list_AVG(result)
+        data = print_results(func.__name__, "2D", result, algo.__name__, avg)
+        iteration += 1
+        print(iteration)
+        print(f"Elapsed Time: {elapsed_time} seconds")
+        write_to_file(f"{algo.__name__}_2D.txt", data)
+
+def run_algo_over_functions_10D(algo):
+    iteration = 0
+    for func in functions:
+        start_time = time.time()
+        result = algo(func, 10, bounds_10D, 10 * 2000)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        avg = calculate_list_AVG(result)
+        data = print_results(func.__name__, "10D", result, algo.__name__, avg)
+        iteration += 1
+        print(iteration)
+        print(f"Elapsed Time: {elapsed_time} seconds")
+        write_to_file(f"{algo.__name__}_10D.txt", data)
+
+def run_algo_over_functions_30D(algo):
+    iteration = 0
+    for func in functions:
+        start_time = time.time()
+        result = algo(func, 30, bounds_30D, 30 * 2000)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        avg = calculate_list_AVG(result)
+        data = print_results(func.__name__, "30D", result, algo.__name__, avg)
+        iteration += 1
+        print(iteration)
+        print(f"Elapsed Time: {elapsed_time} seconds")
+        write_to_file(f"{algo.__name__}_30D.txt", data)
+
+
+#run_algo_over_functions_2D(differential_evolution)
+run_algo_over_functions_2D(differential_evolution_best)
+
+
+"""
 # Example usage:
 start_time = time.time()
-bounds = np.array([[-100, 100] for _ in range(2)])
-results_2D = differential_evolution(parabola, 2, bounds, 2 * 2000)
+results_2D = differential_evolution(parabola, 2, bounds_2D, 2 * 2000)
 print("2D Results (rand/1/bin):", results_2D)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 
 start_time = time.time()
-bounds = np.array([[-100, 100] for _ in range(10)])
-results_10D = differential_evolution(parabola, 10, bounds, 10 * 2000)
+results_10D = differential_evolution(parabola, 10, bounds_10D, 10 * 2000)
 print("10D Results (rand/1/bin):", results_10D)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 
 start_time = time.time()
-bounds = np.array([[-100, 100] for _ in range(30)])
-results_30D = differential_evolution(parabola, 30, bounds, 30 * 2000)
+results_30D = differential_evolution(parabola, 30, bounds_30D, 30 * 2000)
 print("30D Results (rand/1/bin):", results_30D)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 
-results_2D_sum = sum(results_2D)
-results_10D_sum = sum(results_10D)
-results_30D_sum = sum(results_30D)
-
-print(results_2D_sum)
-print(results_10D_sum)
-print(results_30D_sum)
-
 
 # Example usage:
 start_time = time.time()
-bounds = np.array([[-100, 100] for _ in range(2)])
-results_2D_best = differential_evolution_best(parabola, 2, bounds, 2 * 2000)
+results_2D_best = differential_evolution_best(parabola, 2, bounds_2D, 2 * 2000)
 print("2D Results (best/1/bin):", results_2D_best)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 
 start_time = time.time()
-bounds = np.array([[-100, 100] for _ in range(10)])
-results_10D_best = differential_evolution_best(parabola, 10, bounds, 10 * 2000)
+results_10D_best = differential_evolution_best(parabola, 10, bounds_10D, 10 * 2000)
 print("10D Results (best/1/bin):", results_10D_best)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 
 start_time = time.time()
-bounds = np.array([[-100, 100] for _ in range(30)])
-results_30D_best = differential_evolution_best(parabola, 30, bounds, 30 * 2000)
+results_30D_best = differential_evolution_best(parabola, 30, bounds_30D, 30 * 2000)
 print("30D Results (best/1/bin):", results_30D_best)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 
-results_2D_best_sum = sum(results_2D_best)
-results_10D_best_sum = sum(results_10D_best)
-results_30D_best_sum = sum(results_30D_best)
-
-print(results_2D_best_sum)
-print(results_10D_best_sum)
-print(results_30D_best_sum)
-
 
 # Example usage:
 start_time = time.time()
-bounds = np.array([[-100, 100] for _ in range(2)])
-results_2D_pso = pso(parabola, 2, bounds, 2 * 2000)
+results_2D_pso = pso(parabola, 2, bounds_2D, 2 * 2000)
 print("2D Results (PSO):", results_2D_pso)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 
 start_time = time.time()
-bounds = np.array([[-100, 100] for _ in range(10)])
-results_10D_pso = pso(parabola, 10, bounds, 10 * 2000)
+results_10D_pso = pso(parabola, 10, bounds_10D, 10 * 2000)
 print("10D Results (PSO):", results_10D_pso)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 
 start_time = time.time()
-bounds = np.array([[-100, 100] for _ in range(30)])
-results_30D_pso = pso(parabola, 30, bounds, 30 * 2000)
+results_30D_pso = pso(parabola, 30, bounds_30D, 30 * 2000)
 print("30D Results (PSO):", results_30D_pso)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 
-results_2D_pso_sum = sum(results_2D_pso)
-results_10D_pso_sum = sum(results_10D_pso)
-results_30D_pso_sum = sum(results_30D_pso)
-
-print(results_2D_pso_sum)
-print(results_10D_pso_sum)
-print(results_30D_pso_sum)
 
 # Example usage:
 start_time = time.time()
-bounds = np.array([[-100, 100] for _ in range(2)])
-results_2D_soma = soma_all_to_one(parabola, 2, bounds, 2 * 2000)
+results_2D_soma = soma_all_to_one(parabola, 2, bounds_2D, 2 * 2000)
 print("2D Results (SOMA All-to-One):", results_2D_soma)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 
 start_time = time.time()
-bounds = np.array([[-100, 100] for _ in range(10)])
-results_10D_soma = soma_all_to_one(parabola, 10, bounds, 10 * 2000)
+results_10D_soma = soma_all_to_one(parabola, 10, bounds_10D, 10 * 2000)
 print("10D Results (SOMA All-to-One):", results_10D_soma)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 
 start_time = time.time()
-bounds = np.array([[-100, 100] for _ in range(30)])
-results_30D_soma = soma_all_to_one(parabola, 30, bounds, 30 * 2000)
+results_30D_soma = soma_all_to_one(parabola, 30, bounds_30D, 30 * 2000)
 print("30D Results (SOMA All-to-One):", results_30D_soma)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 
-results_2D_soma_sum = sum(results_2D_soma)
-results_10D_soma_sum = sum(results_10D_soma)
-results_30D_soma_sum = sum(results_30D_soma)
-
-print(results_2D_soma_sum)
-print(results_10D_soma_sum)
-print(results_30D_soma_sum)
-
-
 # Example usage:
 start_time = time.time()
-bounds = np.array([[-100, 100] for _ in range(2)])
-results_2D_soma_all = soma_all_to_all(parabola, 2, bounds, 2 * 2000)
+results_2D_soma_all = soma_all_to_all(parabola, 2, bounds_2D, 2 * 2000)
 print("2D Results (SOMA All-to-All):", results_2D_soma_all)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 
 start_time = time.time()
-bounds = np.array([[-100, 100] for _ in range(10)])
-results_10D_soma_all = soma_all_to_all(parabola, 10, bounds, 10 * 2000)
+results_10D_soma_all = soma_all_to_all(parabola, 10, bounds_10D, 10 * 2000)
 print("10D Results (SOMA All-to-All):", results_10D_soma_all)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 
 start_time = time.time()
-bounds = np.array([[-100, 100] for _ in range(30)])
-results_30D_soma_all = soma_all_to_all(parabola, 30, bounds, 30 * 2000)
+results_30D_soma_all = soma_all_to_all(parabola, 30, bounds_30D, 30 * 2000)
 print("30D Results (SOMA All-to-All):", results_30D_soma_all)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed Time: {elapsed_time} seconds")
 
-results_2D_soma_all_sum = sum(results_2D_soma_all)
-results_10D_soma_all_sum = sum(results_10D_soma_all)
-results_30D_soma_all_sum = sum(results_30D_soma_all)
 
-print(results_2D_soma_all_sum)
-print(results_10D_soma_all_sum)
-print(results_30D_soma_all_sum)
+print(calculate_list_AVG(results_2D))
+print(calculate_list_AVG(results_2D_best))
+print(calculate_list_AVG(results_2D_pso))
+#print(calculate_list_AVG(results_2D_soma))
+#print(calculate_list_AVG(results_2D_soma))
 
+print(calculate_list_AVG(results_10D))
+print(calculate_list_AVG(results_10D_best))
+print(calculate_list_AVG(results_10D_pso))
+#print(calculate_list_AVG(results_10D_soma))
+#print(calculate_list_AVG(results_10D_soma))
+
+print(calculate_list_AVG(results_30D))
+print(calculate_list_AVG(results_30D_best))
+print(calculate_list_AVG(results_30D_pso))
+#print(calculate_list_AVG(results_30D_soma))
+#print(calculate_list_AVG(results_30D_soma))
+"""
 
 
 
