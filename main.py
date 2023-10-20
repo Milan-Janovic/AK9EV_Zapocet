@@ -720,9 +720,8 @@ def worker(args):
 
 
 if __name__ == '__main__':
-    """
     algorithms = [differential_evolution, differential_evolution_best, pso]
-    dimension_functions = [run_algo_over_functions_2D]
+    dimension_functions = [run_algo_over_functions_2D, run_algo_over_functions_10D, run_algo_over_functions_30D]
 
     # Create a flattened list of all combinations of algorithms and dimension functions
     tasks = [(algo, dim_func) for algo in algorithms for dim_func in dimension_functions]
@@ -753,9 +752,8 @@ if __name__ == '__main__':
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Elapsed Time: {elapsed_time} seconds")
-    
-    #############################################
-    """
+
+    ##################
 
     start_time = time.time()
     run_algo_over_functions_2D(parallel_soma_all_to_all)
