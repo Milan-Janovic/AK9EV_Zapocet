@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -222,6 +223,11 @@ def differential_evolution(func, D, bounds, FEs, repetitions=30):
     for _ in range(repetitions):
         # Initialize population
         pop = np.random.rand(NP, D) * (bounds[:, 1] - bounds[:, 0]) + bounds[:, 0]
+        new_pop = np.empty_like(pop)
+
+        # Store function evaluations
+        fitness = np.apply_along_axis(func, 1, pop)
+        new_fitness = np.empty_like(fitness)
 
         for _ in range(int(FEs / D)):
             for i in range(NP):
@@ -241,10 +247,19 @@ def differential_evolution(func, D, bounds, FEs, repetitions=30):
                 trial = np.where(trial > bounds[:, 1], 2 * bounds[:, 1] - trial, trial)
 
                 # Selection
-                if func(trial) < func(pop[i]):
-                    pop[i] = trial
+                trial_fitness = func(trial)
+                if trial_fitness < fitness[i]:
+                    new_pop[i] = trial
+                    new_fitness[i] = trial_fitness
+                else:
+                    new_pop[i] = pop[i]
+                    new_fitness[i] = fitness[i]
 
-        results.append(func(pop[np.argmin([func(ind) for ind in pop])]))
+            # Swap the populations and their fitness values
+            pop, new_pop = new_pop, pop
+            fitness, new_fitness = new_fitness, fitness
+
+        results.append(fitness.min())
 
     return results
 
@@ -267,9 +282,15 @@ def differential_evolution_best(func, D, bounds, FEs, repetitions=30):
     for _ in range(repetitions):
         # Initialize population
         pop = np.random.rand(NP, D) * (bounds[:, 1] - bounds[:, 0]) + bounds[:, 0]
+        new_pop = np.empty_like(pop)
+
+        # Store function evaluations
+        fitness = np.apply_along_axis(func, 1, pop)
+        new_fitness = np.empty_like(fitness)
 
         for _ in range(int(FEs / D)):
-            best = pop[np.argmin([func(ind) for ind in pop])]
+            best_idx = np.argmin(fitness)
+            best = pop[best_idx]
 
             for i in range(NP):
                 # Mutation: best/1
@@ -288,15 +309,24 @@ def differential_evolution_best(func, D, bounds, FEs, repetitions=30):
                 trial = np.where(trial > bounds[:, 1], 2 * bounds[:, 1] - trial, trial)
 
                 # Selection
-                if func(trial) < func(pop[i]):
-                    pop[i] = trial
+                trial_fitness = func(trial)
+                if trial_fitness < fitness[i]:
+                    new_pop[i] = trial
+                    new_fitness[i] = trial_fitness
+                else:
+                    new_pop[i] = pop[i]
+                    new_fitness[i] = fitness[i]
 
-        results.append(func(pop[np.argmin([func(ind) for ind in pop])]))
+            # Swap the populations and their fitness values
+            pop, new_pop = new_pop, pop
+            fitness, new_fitness = new_fitness, fitness
+
+        results.append(fitness.min())
 
     return results
 
 
-def pso(func, D, bounds, FEs, repetitions=30, w=0.5, c1=1.5, c2=1.5):
+def pso(func, D, bounds, FEs, repetitions=30, w=0.7298, c1=1.49618, c2=1.49618):
     if D == 2:
         NP = 10
     elif D == 10:
@@ -312,6 +342,7 @@ def pso(func, D, bounds, FEs, repetitions=30, w=0.5, c1=1.5, c2=1.5):
     results = []
     for _ in range(repetitions):
         positions = np.random.rand(NP, D) * (bounds[:, 1] - bounds[:, 0]) + bounds[:, 0]
+        new_positions = np.empty_like(positions)  # Array to store new positions temporarily
         velocities = np.random.rand(NP, D) * (bounds[:, 1] - bounds[:, 0]) + bounds[:, 0]
         personal_best_positions = np.copy(positions)
         personal_best_scores = np.array([func(ind) for ind in positions])
@@ -329,21 +360,25 @@ def pso(func, D, bounds, FEs, repetitions=30, w=0.5, c1=1.5, c2=1.5):
                 velocities[i] = np.clip(velocities[i], -v_max, v_max)
 
                 # Update positions and handle boundary conditions using reflection
-                positions[i] += velocities[i]
-                positions[i] = np.where(positions[i] < bounds[:, 0], 2 * bounds[:, 0] - positions[i], positions[i])
-                positions[i] = np.where(positions[i] > bounds[:, 1], 2 * bounds[:, 1] - positions[i], positions[i])
+                new_positions[i] = positions[i] + velocities[i]
+                new_positions[i] = np.where(new_positions[i] < bounds[:, 0], 2 * bounds[:, 0] - new_positions[i], new_positions[i])
+                new_positions[i] = np.where(new_positions[i] > bounds[:, 1], 2 * bounds[:, 1] - new_positions[i], new_positions[i])
 
-                # Update personal best
-                if func(positions[i]) < personal_best_scores[i]:
-                    personal_best_scores[i] = func(positions[i])
-                    personal_best_positions[i] = positions[i]
+                # Update personal best based on new positions
+                if func(new_positions[i]) < personal_best_scores[i]:
+                    personal_best_scores[i] = func(new_positions[i])
+                    personal_best_positions[i] = new_positions[i]
 
-            # Update global best
+            # Update main positions with the new ones
+            positions = new_positions.copy()
+
+            # Update global best based on new positions
             global_best_position = personal_best_positions[np.argmin(personal_best_scores)]
 
         results.append(func(global_best_position))
 
     return results
+
 
 def soma_all_to_one(func, D, bounds, FEs, repetitions=30, PathLength=3, StepSize=0.11, PRT=0.7):
     # Define population size based on dimension
@@ -361,36 +396,48 @@ def soma_all_to_one(func, D, bounds, FEs, repetitions=30, PathLength=3, StepSize
     for _ in range(repetitions):
         # Initialize population
         pop = np.random.rand(NP, D) * (bounds[:, 1] - bounds[:, 0]) + bounds[:, 0]
+        new_population = np.copy(pop)
+        fitness_cache = np.array([func(ind) for ind in pop])
 
         for _ in range(int(FEs / D)):
             # Find the best individual
-            leader = pop[np.argmin([func(ind) for ind in pop])]
+            leader_index = np.argmin(fitness_cache)
+            leader = pop[leader_index]
+
+            # Compute journeys for all individuals in a vectorized manner
+            journeys = (leader - pop) * PathLength
+            steps = int(PathLength / StepSize)
 
             # Migrate all individuals towards the leader
             for i in range(NP):
-                if not np.array_equal(pop[i], leader):  # Ensure we're not trying to migrate the leader to itself
-                    journey = (leader - pop[i]) * PathLength
-                    steps = int(PathLength / StepSize)
+                if i != leader_index:  # Ensure we're not trying to migrate the leader to itself
+                    current_pos = pop[i]
+                    current_fitness = fitness_cache[i]
 
-                    # Follow the path towards the leader in steps
+                    # Calculate all steps for the current individual
                     for step in range(steps):
-                        # Generate a random vector for PRT perturbation
                         prt_vector = np.where(np.random.rand(D) < PRT, 1, 0)
-
-                        # Calculate the new position using the StepSize and perturbation
-                        new_pos = pop[i] + StepSize * journey * prt_vector
+                        new_pos = current_pos + StepSize * journeys[i] * prt_vector
 
                         # Reflection for boundary control
                         new_pos = np.where(new_pos < bounds[:, 0], 2 * bounds[:, 0] - new_pos, new_pos)
                         new_pos = np.where(new_pos > bounds[:, 1], 2 * bounds[:, 1] - new_pos, new_pos)
 
-                        # Accept the new position if it has a better fitness
-                        if func(new_pos) < func(pop[i]):
-                            pop[i] = new_pos
+                        new_fitness = func(new_pos)
+                        if new_fitness < current_fitness:
+                            current_fitness = new_fitness
+                            current_pos = new_pos
 
-        results.append(func(pop[np.argmin([func(ind) for ind in pop])]))
+                    new_population[i] = current_pos
+                    fitness_cache[i] = current_fitness
+
+            # Replace the old population with the new one
+            pop = np.copy(new_population)
+
+        results.append(fitness_cache[leader_index])
 
     return results
+
 
 def soma_all_to_all(func, D, bounds, FEs, repetitions=30, PathLength=3, StepSize=0.11, PRT=0.7):
     # Define population size based on dimension
@@ -408,106 +455,222 @@ def soma_all_to_all(func, D, bounds, FEs, repetitions=30, PathLength=3, StepSize
     for _ in range(repetitions):
         # Initialize population
         pop = np.random.rand(NP, D) * (bounds[:, 1] - bounds[:, 0]) + bounds[:, 0]
+        fitness_cache = np.array([func(ind) for ind in pop])
 
         for _ in range(int(FEs / NP)):
+            new_population = pop.copy()
+
             # For each individual in the population
             for i in range(NP):
-                # Migrate towards every other individual
-                for j in range(NP):
-                    if not np.array_equal(pop[i], pop[j]):  # Ensure we're not trying to migrate an individual to itself
-                        journey = (pop[j] - pop[i]) * PathLength
-                        steps = int(PathLength / StepSize)
+                # Broadcasted difference between individual i and all others
+                differences = pop - pop[i]
 
-                        # Follow the path towards the target individual in steps
-                        for step in range(steps):
-                            # Generate a random vector for PRT perturbation
-                            prt_vector = np.where(np.random.rand(D) < PRT, 1, 0)
+                # Calculate journey for all individuals in one go
+                journeys = differences * PathLength
+                steps = int(PathLength / StepSize)
+                current_pos = np.tile(pop[i], (NP, 1))
+                current_fitness = fitness_cache[i]
 
-                            # Calculate the new position using the StepSize and perturbation
-                            new_pos = pop[i] + StepSize * journey * prt_vector
+                # Calculate all steps for the current individual
+                for step in range(steps):
+                    prt_vectors = np.where(np.random.rand(NP, D) < PRT, 1, 0)
+                    step_moves = StepSize * journeys * prt_vectors
+                    new_positions = current_pos + step_moves
 
-                            # Reflection for boundary control
-                            new_pos = np.where(new_pos < bounds[:, 0], 2 * bounds[:, 0] - new_pos, new_pos)
-                            new_pos = np.where(new_pos > bounds[:, 1], 2 * bounds[:, 1] - new_pos, new_pos)
+                    # Reflection for boundary control
+                    new_positions = np.where(new_positions < bounds[:, 0], 2 * bounds[:, 0] - new_positions,
+                                             new_positions)
+                    new_positions = np.where(new_positions > bounds[:, 1], 2 * bounds[:, 1] - new_positions,
+                                             new_positions)
 
-                            # Accept the new position if it has a better fitness
-                            if func(new_pos) < func(pop[i]):
-                                pop[i] = new_pos
+                    # Calculate fitness for all new positions
+                    new_fitnesses = np.array([func(pos) for pos in new_positions])
+                    improved_positions_mask = new_fitnesses < current_fitness
 
-        results.append(func(pop[np.argmin([func(ind) for ind in pop])]))
+                    # Update only improved positions
+                    current_pos[improved_positions_mask] = new_positions[improved_positions_mask]
+                    current_fitness = np.min([current_fitness, np.min(new_fitnesses)])
+
+                new_population[i] = current_pos[np.argmin(new_fitnesses)]
+                fitness_cache[i] = current_fitness
+
+            pop = new_population
+
+        results.append(np.min(fitness_cache))
 
     return results
 
 
 # Example usage:
+start_time = time.time()
 bounds = np.array([[-100, 100] for _ in range(2)])
 results_2D = differential_evolution(parabola, 2, bounds, 2 * 2000)
 print("2D Results (rand/1/bin):", results_2D)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed Time: {elapsed_time} seconds")
 
+start_time = time.time()
 bounds = np.array([[-100, 100] for _ in range(10)])
 results_10D = differential_evolution(parabola, 10, bounds, 10 * 2000)
 print("10D Results (rand/1/bin):", results_10D)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed Time: {elapsed_time} seconds")
 
+start_time = time.time()
 bounds = np.array([[-100, 100] for _ in range(30)])
 results_30D = differential_evolution(parabola, 30, bounds, 30 * 2000)
 print("30D Results (rand/1/bin):", results_30D)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed Time: {elapsed_time} seconds")
+
+results_2D_sum = sum(results_2D)
+results_10D_sum = sum(results_10D)
+results_30D_sum = sum(results_30D)
+
+print(results_2D_sum)
+print(results_10D_sum)
+print(results_30D_sum)
 
 
 # Example usage:
+start_time = time.time()
 bounds = np.array([[-100, 100] for _ in range(2)])
 results_2D_best = differential_evolution_best(parabola, 2, bounds, 2 * 2000)
 print("2D Results (best/1/bin):", results_2D_best)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed Time: {elapsed_time} seconds")
 
+start_time = time.time()
 bounds = np.array([[-100, 100] for _ in range(10)])
 results_10D_best = differential_evolution_best(parabola, 10, bounds, 10 * 2000)
 print("10D Results (best/1/bin):", results_10D_best)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed Time: {elapsed_time} seconds")
 
+start_time = time.time()
 bounds = np.array([[-100, 100] for _ in range(30)])
 results_30D_best = differential_evolution_best(parabola, 30, bounds, 30 * 2000)
 print("30D Results (best/1/bin):", results_30D_best)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed Time: {elapsed_time} seconds")
+
+results_2D_best_sum = sum(results_2D_best)
+results_10D_best_sum = sum(results_10D_best)
+results_30D_best_sum = sum(results_30D_best)
+
+print(results_2D_best_sum)
+print(results_10D_best_sum)
+print(results_30D_best_sum)
 
 
 # Example usage:
+start_time = time.time()
 bounds = np.array([[-100, 100] for _ in range(2)])
 results_2D_pso = pso(parabola, 2, bounds, 2 * 2000)
 print("2D Results (PSO):", results_2D_pso)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed Time: {elapsed_time} seconds")
 
+start_time = time.time()
 bounds = np.array([[-100, 100] for _ in range(10)])
 results_10D_pso = pso(parabola, 10, bounds, 10 * 2000)
 print("10D Results (PSO):", results_10D_pso)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed Time: {elapsed_time} seconds")
 
+start_time = time.time()
 bounds = np.array([[-100, 100] for _ in range(30)])
 results_30D_pso = pso(parabola, 30, bounds, 30 * 2000)
 print("30D Results (PSO):", results_30D_pso)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed Time: {elapsed_time} seconds")
 
+results_2D_pso_sum = sum(results_2D_pso)
+results_10D_pso_sum = sum(results_10D_pso)
+results_30D_pso_sum = sum(results_30D_pso)
+
+print(results_2D_pso_sum)
+print(results_10D_pso_sum)
+print(results_30D_pso_sum)
 
 # Example usage:
+start_time = time.time()
 bounds = np.array([[-100, 100] for _ in range(2)])
 results_2D_soma = soma_all_to_one(parabola, 2, bounds, 2 * 2000)
 print("2D Results (SOMA All-to-One):", results_2D_soma)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed Time: {elapsed_time} seconds")
 
+start_time = time.time()
 bounds = np.array([[-100, 100] for _ in range(10)])
 results_10D_soma = soma_all_to_one(parabola, 10, bounds, 10 * 2000)
 print("10D Results (SOMA All-to-One):", results_10D_soma)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed Time: {elapsed_time} seconds")
 
+start_time = time.time()
 bounds = np.array([[-100, 100] for _ in range(30)])
 results_30D_soma = soma_all_to_one(parabola, 30, bounds, 30 * 2000)
 print("30D Results (SOMA All-to-One):", results_30D_soma)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed Time: {elapsed_time} seconds")
+
+results_2D_soma_sum = sum(results_2D_soma)
+results_10D_soma_sum = sum(results_10D_soma)
+results_30D_soma_sum = sum(results_30D_soma)
+
+print(results_2D_soma_sum)
+print(results_10D_soma_sum)
+print(results_30D_soma_sum)
 
 
 # Example usage:
+start_time = time.time()
 bounds = np.array([[-100, 100] for _ in range(2)])
-results_2D_soma = soma_all_to_all(parabola, 2, bounds, 2 * 2000)
+results_2D_soma_all = soma_all_to_all(parabola, 2, bounds, 2 * 2000)
+print("2D Results (SOMA All-to-All):", results_2D_soma_all)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed Time: {elapsed_time} seconds")
 
+start_time = time.time()
 bounds = np.array([[-100, 100] for _ in range(10)])
-results_10D_soma = soma_all_to_all(parabola, 10, bounds, 10 * 2000)
+results_10D_soma_all = soma_all_to_all(parabola, 10, bounds, 10 * 2000)
+print("10D Results (SOMA All-to-All):", results_10D_soma_all)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed Time: {elapsed_time} seconds")
 
+start_time = time.time()
 bounds = np.array([[-100, 100] for _ in range(30)])
-results_30D_soma = soma_all_to_all(parabola, 30, bounds, 30 * 2000)
+results_30D_soma_all = soma_all_to_all(parabola, 30, bounds, 30 * 2000)
+print("30D Results (SOMA All-to-All):", results_30D_soma_all)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed Time: {elapsed_time} seconds")
 
-print("2D Results (SOMA All-to-All):", results_2D_soma)
-print("10D Results (SOMA All-to-All):", results_10D_soma)
-print("30D Results (SOMA All-to-All):", results_30D_soma)
+results_2D_soma_all_sum = sum(results_2D_soma_all)
+results_10D_soma_all_sum = sum(results_10D_soma_all)
+results_30D_soma_all_sum = sum(results_30D_soma_all)
+
+print(results_2D_soma_all_sum)
+print(results_10D_soma_all_sum)
+print(results_30D_soma_all_sum)
+
+
+
 
 
 
