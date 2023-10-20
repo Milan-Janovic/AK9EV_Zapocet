@@ -444,6 +444,75 @@ def soma_all_to_one(func, D, bounds, FEs, repetitions=30, PathLength=3, StepSize
     return results
 
 
+def single_repetition_soma_all_to_one(func, D, bounds, FEs, NP, PathLength, StepSize, PRT):
+    # Initialize population
+    pop = np.random.rand(NP, D) * (bounds[:, 1] - bounds[:, 0]) + bounds[:, 0]
+    new_population = np.copy(pop)
+    fitness_cache = np.array([func(ind) for ind in pop])
+
+    for _ in range(int(FEs / D)):
+        # Find the best individual
+        leader_index = np.argmin(fitness_cache)
+        leader = pop[leader_index]
+
+        # Compute journeys for all individuals in a vectorized manner
+        journeys = (leader - pop) * PathLength
+        steps = int(PathLength / StepSize)
+
+        # Migrate all individuals towards the leader
+        for i in range(NP):
+            if i != leader_index:  # Ensure we're not trying to migrate the leader to itself
+                current_pos = pop[i]
+                current_fitness = fitness_cache[i]
+
+                # Calculate all steps for the current individual
+                for step in range(steps):
+                    prt_vector = np.where(np.random.rand(D) < PRT, 1, 0)
+                    new_pos = current_pos + StepSize * journeys[i] * prt_vector
+
+                    # Reflection for boundary control
+                    new_pos = np.where(new_pos < bounds[:, 0], 2 * bounds[:, 0] - new_pos, new_pos)
+                    new_pos = np.where(new_pos > bounds[:, 1], 2 * bounds[:, 1] - new_pos, new_pos)
+
+                    new_fitness = func(new_pos)
+                    if new_fitness < current_fitness:
+                        current_fitness = new_fitness
+                        current_pos = new_pos
+
+                new_population[i] = current_pos
+                fitness_cache[i] = current_fitness
+
+        # Replace the old population with the new one
+        pop = np.copy(new_population)
+
+    return fitness_cache[np.argmin(fitness_cache)]
+
+
+def parallel_soma_all_to_one(func, D, bounds, FEs, repetitions=30, PathLength=3, StepSize=0.11, PRT=0.7):
+    # Define population size based on dimension
+    if D == 2:
+        NP = 10
+    elif D == 10:
+        NP = 20
+    elif D == 30:
+        NP = 50
+    else:
+        raise ValueError("Unsupported dimension!")
+
+    # Create a pool of worker processes
+    num_cores = repetitions  # Or set it to a desired number of cores or to multiprocessing.cpu_count()
+    pool = multiprocessing.Pool(processes=num_cores)
+
+    # Use pool.map to parallelize the repetitions
+    args = [(func, D, bounds, FEs, NP, PathLength, StepSize, PRT) for _ in range(repetitions)]
+    results = pool.starmap(single_repetition_soma_all_to_one, args)
+
+    pool.close()
+    pool.join()
+
+    return results
+
+
 def soma_all_to_all(func, D, bounds, FEs, repetitions=30, PathLength=3, StepSize=0.11, PRT=0.7):
     # Define population size based on dimension
     if D == 2:
@@ -506,15 +575,84 @@ def soma_all_to_all(func, D, bounds, FEs, repetitions=30, PathLength=3, StepSize
     return results
 
 
+def single_repetition_soma_all_to_all(func, D, bounds, FEs, NP, PathLength, StepSize, PRT):
+    pop = np.random.rand(NP, D) * (bounds[:, 1] - bounds[:, 0]) + bounds[:, 0]
+    fitness_cache = np.array([func(ind) for ind in pop])
+
+    for _ in range(int(FEs / NP)):
+        new_population = pop.copy()
+
+        # For each individual in the population
+        for i in range(NP):
+            # Broadcast difference between individual i and all others
+            differences = pop - pop[i]
+
+            # Calculate journey for all individuals in one go
+            journeys = differences * PathLength
+            steps = int(PathLength / StepSize)
+            current_pos = np.tile(pop[i], (NP, 1))
+            current_fitness = fitness_cache[i]
+
+            # Calculate all steps for the current individual
+            for step in range(steps):
+                prt_vectors = np.where(np.random.rand(NP, D) < PRT, 1, 0)
+                step_moves = StepSize * journeys * prt_vectors
+                new_positions = current_pos + step_moves
+
+                # Reflection for boundary control
+                new_positions = np.where(new_positions < bounds[:, 0], 2 * bounds[:, 0] - new_positions,
+                                         new_positions)
+                new_positions = np.where(new_positions > bounds[:, 1], 2 * bounds[:, 1] - new_positions,
+                                         new_positions)
+
+                # Calculate fitness for all new positions
+                new_fitnesses = np.array([func(pos) for pos in new_positions])
+                improved_positions_mask = new_fitnesses < current_fitness
+
+                # Update only improved positions
+                current_pos[improved_positions_mask] = new_positions[improved_positions_mask]
+                current_fitness = np.min([current_fitness, np.min(new_fitnesses)])
+
+            new_population[i] = current_pos[np.argmin(new_fitnesses)]
+            fitness_cache[i] = current_fitness
+
+        pop = new_population
+
+    return np.min(fitness_cache)
+
+
+def parallel_soma_all_to_all(func, D, bounds, FEs, repetitions=30, PathLength=3, StepSize=0.11, PRT=0.7):
+    # Define population size based on dimension
+    if D == 2:
+        NP = 10
+    elif D == 10:
+        NP = 20
+    elif D == 30:
+        NP = 50
+    else:
+        raise ValueError("Unsupported dimension!")
+
+    # Create a pool of worker processes
+    num_cores = repetitions  # Or set it to a desired number of cores or to multiprocessing.cpu_count()
+    pool = multiprocessing.Pool(processes=num_cores)
+
+    # Use pool.map to parallelize the repetitions
+    args = [(func, D, bounds, FEs, NP, PathLength, StepSize, PRT) for _ in range(repetitions)]
+    results = pool.starmap(single_repetition_soma_all_to_all, args)
+
+    pool.close()
+    pool.join()
+
+    return results
+
+
 def calculate_list_AVG(list_to_be_summed):
     return np.mean(list_to_be_summed)
 
 
 def print_results(func_name, dimensions, results, algorithm_name, AVG):
-    results = []
-    return f"AVG for {func_name.upper()} with {algorithm_name.upper()} {dimensions} algorithm:", f"{AVG}"
-    # return f"Results for {func_name.upper()} with {algorithm_name.upper()} {dimensions} algorithm:", results,
-    # f"AVG = {AVG}"
+    # return f"AVG for {func_name.upper()} with {algorithm_name.upper()} {dimensions} algorithm:", f"{AVG}"
+    return f"Results for {func_name.upper()} with {algorithm_name.upper()} {dimensions} algorithm:", results, f"AVG = {AVG}"
 
 
 def write_to_file(file_name, data_tuple):
@@ -576,25 +714,15 @@ def run_algo_over_functions_30D(algo):
         write_to_file(f"{algo.__name__}_30D.txt", data)
 
 
-"""
-def run_all_algorithms_simultaneously():
-    # List of all algorithms
-    algos = [differential_evolution, differential_evolution_best, pso, soma_all_to_one, soma_all_to_all]
-
-    # Create a Pool of processes
-    with multiprocessing.Pool(len(algos)) as pool:
-        pool.map(run_algo_over_functions_2D, algos)
-"""
-
-
 def worker(args):
     algo, dimension_function = args
     dimension_function(algo)
 
 
 if __name__ == '__main__':
-    algorithms = [differential_evolution, differential_evolution_best, pso, soma_all_to_one, soma_all_to_all]
-    dimension_functions = [run_algo_over_functions_2D, run_algo_over_functions_10D, run_algo_over_functions_30D]
+    """
+    algorithms = [differential_evolution, differential_evolution_best, pso]
+    dimension_functions = [run_algo_over_functions_2D]
 
     # Create a flattened list of all combinations of algorithms and dimension functions
     tasks = [(algo, dim_func) for algo in algorithms for dim_func in dimension_functions]
@@ -607,137 +735,42 @@ if __name__ == '__main__':
         pool.map(worker, tasks)
 
     print("All tasks finished!")
+    
+    start_time = time.time()
+    run_algo_over_functions_2D(parallel_soma_all_to_one)
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"Elapsed Time: {elapsed_time} seconds")
+    
+    start_time = time.time()
+    run_algo_over_functions_10D(parallel_soma_all_to_one)
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"Elapsed Time: {elapsed_time} seconds")
+    
+    start_time = time.time()
+    run_algo_over_functions_30D(parallel_soma_all_to_one)
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"Elapsed Time: {elapsed_time} seconds")
+    
+    #############################################
+    """
 
-"""
-# Example usage:
-start_time = time.time()
-results_2D = differential_evolution(parabola, 2, bounds_2D, 2 * 2000)
-print("2D Results (rand/1/bin):", results_2D)
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"Elapsed Time: {elapsed_time} seconds")
+    start_time = time.time()
+    run_algo_over_functions_2D(parallel_soma_all_to_all)
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"Elapsed Time: {elapsed_time} seconds")
 
-start_time = time.time()
-results_10D = differential_evolution(parabola, 10, bounds_10D, 10 * 2000)
-print("10D Results (rand/1/bin):", results_10D)
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"Elapsed Time: {elapsed_time} seconds")
+    start_time = time.time()
+    run_algo_over_functions_10D(parallel_soma_all_to_all)
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"Elapsed Time: {elapsed_time} seconds")
 
-start_time = time.time()
-results_30D = differential_evolution(parabola, 30, bounds_30D, 30 * 2000)
-print("30D Results (rand/1/bin):", results_30D)
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"Elapsed Time: {elapsed_time} seconds")
-
-
-# Example usage:
-start_time = time.time()
-results_2D_best = differential_evolution_best(parabola, 2, bounds_2D, 2 * 2000)
-print("2D Results (best/1/bin):", results_2D_best)
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"Elapsed Time: {elapsed_time} seconds")
-
-start_time = time.time()
-results_10D_best = differential_evolution_best(parabola, 10, bounds_10D, 10 * 2000)
-print("10D Results (best/1/bin):", results_10D_best)
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"Elapsed Time: {elapsed_time} seconds")
-
-start_time = time.time()
-results_30D_best = differential_evolution_best(parabola, 30, bounds_30D, 30 * 2000)
-print("30D Results (best/1/bin):", results_30D_best)
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"Elapsed Time: {elapsed_time} seconds")
-
-
-# Example usage:
-start_time = time.time()
-results_2D_pso = pso(parabola, 2, bounds_2D, 2 * 2000)
-print("2D Results (PSO):", results_2D_pso)
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"Elapsed Time: {elapsed_time} seconds")
-
-start_time = time.time()
-results_10D_pso = pso(parabola, 10, bounds_10D, 10 * 2000)
-print("10D Results (PSO):", results_10D_pso)
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"Elapsed Time: {elapsed_time} seconds")
-
-start_time = time.time()
-results_30D_pso = pso(parabola, 30, bounds_30D, 30 * 2000)
-print("30D Results (PSO):", results_30D_pso)
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"Elapsed Time: {elapsed_time} seconds")
-
-
-# Example usage:
-start_time = time.time()
-results_2D_soma = soma_all_to_one(parabola, 2, bounds_2D, 2 * 2000)
-print("2D Results (SOMA All-to-One):", results_2D_soma)
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"Elapsed Time: {elapsed_time} seconds")
-
-start_time = time.time()
-results_10D_soma = soma_all_to_one(parabola, 10, bounds_10D, 10 * 2000)
-print("10D Results (SOMA All-to-One):", results_10D_soma)
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"Elapsed Time: {elapsed_time} seconds")
-
-start_time = time.time()
-results_30D_soma = soma_all_to_one(parabola, 30, bounds_30D, 30 * 2000)
-print("30D Results (SOMA All-to-One):", results_30D_soma)
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"Elapsed Time: {elapsed_time} seconds")
-
-# Example usage:
-start_time = time.time()
-results_2D_soma_all = soma_all_to_all(parabola, 2, bounds_2D, 2 * 2000)
-print("2D Results (SOMA All-to-All):", results_2D_soma_all)
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"Elapsed Time: {elapsed_time} seconds")
-
-start_time = time.time()
-results_10D_soma_all = soma_all_to_all(parabola, 10, bounds_10D, 10 * 2000)
-print("10D Results (SOMA All-to-All):", results_10D_soma_all)
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"Elapsed Time: {elapsed_time} seconds")
-
-start_time = time.time()
-results_30D_soma_all = soma_all_to_all(parabola, 30, bounds_30D, 30 * 2000)
-print("30D Results (SOMA All-to-All):", results_30D_soma_all)
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"Elapsed Time: {elapsed_time} seconds")
-
-
-print(calculate_list_AVG(results_2D))
-print(calculate_list_AVG(results_2D_best))
-print(calculate_list_AVG(results_2D_pso))
-#print(calculate_list_AVG(results_2D_soma))
-#print(calculate_list_AVG(results_2D_soma))
-
-print(calculate_list_AVG(results_10D))
-print(calculate_list_AVG(results_10D_best))
-print(calculate_list_AVG(results_10D_pso))
-#print(calculate_list_AVG(results_10D_soma))
-#print(calculate_list_AVG(results_10D_soma))
-
-print(calculate_list_AVG(results_30D))
-print(calculate_list_AVG(results_30D_best))
-print(calculate_list_AVG(results_30D_pso))
-#print(calculate_list_AVG(results_30D_soma))
-#print(calculate_list_AVG(results_30D_soma))
-"""
+    start_time = time.time()
+    run_algo_over_functions_30D(parallel_soma_all_to_all)
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"Elapsed Time: {elapsed_time} seconds")
