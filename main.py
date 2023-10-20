@@ -1,3 +1,4 @@
+import multiprocessing
 import time
 import numpy as np
 import matplotlib.pyplot as plt
@@ -199,9 +200,10 @@ functions = [
     inverted_sine,
 ]
 
+
 # Create 2D & 3D plots for all the functions
-#for test_function in functions:
-    #plot_function(test_function)
+# for test_function in functions:
+# plot_function(test_function)
 
 
 def differential_evolution(func, D, bounds, FEs, repetitions=30):
@@ -262,6 +264,7 @@ def differential_evolution(func, D, bounds, FEs, repetitions=30):
         results.append(fitness.min())
 
     return results
+
 
 def differential_evolution_best(func, D, bounds, FEs, repetitions=30):
     # Define population size based on dimension
@@ -355,14 +358,16 @@ def pso(func, D, bounds, FEs, repetitions=30, w=0.7298, c1=1.49618, c2=1.49618):
 
                 # Update velocities and clamp them
                 velocities[i] = w * velocities[i] + c1 * random_p * (
-                            personal_best_positions[i] - positions[i]) + c2 * random_g * (
-                                            global_best_position - positions[i])
+                        personal_best_positions[i] - positions[i]) + c2 * random_g * (
+                                        global_best_position - positions[i])
                 velocities[i] = np.clip(velocities[i], -v_max, v_max)
 
                 # Update positions and handle boundary conditions using reflection
                 new_positions[i] = positions[i] + velocities[i]
-                new_positions[i] = np.where(new_positions[i] < bounds[:, 0], 2 * bounds[:, 0] - new_positions[i], new_positions[i])
-                new_positions[i] = np.where(new_positions[i] > bounds[:, 1], 2 * bounds[:, 1] - new_positions[i], new_positions[i])
+                new_positions[i] = np.where(new_positions[i] < bounds[:, 0], 2 * bounds[:, 0] - new_positions[i],
+                                            new_positions[i])
+                new_positions[i] = np.where(new_positions[i] > bounds[:, 1], 2 * bounds[:, 1] - new_positions[i],
+                                            new_positions[i])
 
                 # Update personal best based on new positions
                 if func(new_positions[i]) < personal_best_scores[i]:
@@ -462,7 +467,7 @@ def soma_all_to_all(func, D, bounds, FEs, repetitions=30, PathLength=3, StepSize
 
             # For each individual in the population
             for i in range(NP):
-                # Broadcasted difference between individual i and all others
+                # Broadcast difference between individual i and all others
                 differences = pop - pop[i]
 
                 # Calculate journey for all individuals in one go
@@ -504,10 +509,13 @@ def soma_all_to_all(func, D, bounds, FEs, repetitions=30, PathLength=3, StepSize
 def calculate_list_AVG(list_to_be_summed):
     return np.mean(list_to_be_summed)
 
-def print_results(func_name, dimensions, results , algorithm_name, AVG):
-    results=[]
+
+def print_results(func_name, dimensions, results, algorithm_name, AVG):
+    results = []
     return f"AVG for {func_name.upper()} with {algorithm_name.upper()} {dimensions} algorithm:", f"{AVG}"
-    #return f"Results for {func_name.upper()} with {algorithm_name.upper()} {dimensions} algorithm:", results, f"AVG = {AVG}"
+    # return f"Results for {func_name.upper()} with {algorithm_name.upper()} {dimensions} algorithm:", results,
+    # f"AVG = {AVG}"
+
 
 def write_to_file(file_name, data_tuple):
     # Convert tuple to string
@@ -521,6 +529,7 @@ def write_to_file(file_name, data_tuple):
 bounds_2D = np.array([[-100, 100] for _ in range(2)])
 bounds_10D = np.array([[-100, 100] for _ in range(10)])
 bounds_30D = np.array([[-100, 100] for _ in range(30)])
+
 
 def run_algo_over_functions_2D(algo):
     iteration = 0
@@ -536,6 +545,7 @@ def run_algo_over_functions_2D(algo):
         print(f"Elapsed Time: {elapsed_time} seconds")
         write_to_file(f"{algo.__name__}_2D.txt", data)
 
+
 def run_algo_over_functions_10D(algo):
     iteration = 0
     for func in functions:
@@ -549,6 +559,7 @@ def run_algo_over_functions_10D(algo):
         print(iteration)
         print(f"Elapsed Time: {elapsed_time} seconds")
         write_to_file(f"{algo.__name__}_10D.txt", data)
+
 
 def run_algo_over_functions_30D(algo):
     iteration = 0
@@ -565,9 +576,37 @@ def run_algo_over_functions_30D(algo):
         write_to_file(f"{algo.__name__}_30D.txt", data)
 
 
-#run_algo_over_functions_2D(differential_evolution)
-run_algo_over_functions_2D(differential_evolution_best)
+"""
+def run_all_algorithms_simultaneously():
+    # List of all algorithms
+    algos = [differential_evolution, differential_evolution_best, pso, soma_all_to_one, soma_all_to_all]
 
+    # Create a Pool of processes
+    with multiprocessing.Pool(len(algos)) as pool:
+        pool.map(run_algo_over_functions_2D, algos)
+"""
+
+
+def worker(args):
+    algo, dimension_function = args
+    dimension_function(algo)
+
+
+if __name__ == '__main__':
+    algorithms = [differential_evolution, differential_evolution_best, pso, soma_all_to_one, soma_all_to_all]
+    dimension_functions = [run_algo_over_functions_2D, run_algo_over_functions_10D, run_algo_over_functions_30D]
+
+    # Create a flattened list of all combinations of algorithms and dimension functions
+    tasks = [(algo, dim_func) for algo in algorithms for dim_func in dimension_functions]
+
+    # Use all available cores
+    num_cores = multiprocessing.cpu_count()
+
+    # Create a process pool and start executing
+    with multiprocessing.Pool(num_cores) as pool:
+        pool.map(worker, tasks)
+
+    print("All tasks finished!")
 
 """
 # Example usage:
@@ -702,22 +741,3 @@ print(calculate_list_AVG(results_30D_pso))
 #print(calculate_list_AVG(results_30D_soma))
 #print(calculate_list_AVG(results_30D_soma))
 """
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
