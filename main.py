@@ -231,7 +231,7 @@ def differential_evolution(func, D, bounds, FEs, repetitions=30):
         fitness = np.apply_along_axis(func, 1, pop)
         new_fitness = np.empty_like(fitness)
 
-        for _ in range(int(FEs / D)):
+        for _ in range(int(FEs / NP)):
             for i in range(NP):
                 # Mutation: rand/1
                 a, b, c = pop[np.random.choice(NP, 3, replace=False)]
@@ -250,7 +250,7 @@ def differential_evolution(func, D, bounds, FEs, repetitions=30):
 
                 # Selection
                 trial_fitness = func(trial)
-                if trial_fitness < fitness[i]:
+                if trial_fitness <  fitness[i]:
                     new_pop[i] = trial
                     new_fitness[i] = trial_fitness
                 else:
@@ -291,7 +291,7 @@ def differential_evolution_best(func, D, bounds, FEs, repetitions=30):
         fitness = np.apply_along_axis(func, 1, pop)
         new_fitness = np.empty_like(fitness)
 
-        for _ in range(int(FEs / D)):
+        for _ in range(int(FEs / NP)):
             best_idx = np.argmin(fitness)
             best = pop[best_idx]
 
@@ -404,7 +404,7 @@ def soma_all_to_one(func, D, bounds, FEs, repetitions=30, PathLength=3, StepSize
         new_population = np.copy(pop)
         fitness_cache = np.array([func(ind) for ind in pop])
 
-        for _ in range(int(FEs / D)):
+        for _ in range(int(FEs / NP)):
             # Find the best individual
             leader_index = np.argmin(fitness_cache)
             leader = pop[leader_index]
@@ -450,7 +450,7 @@ def single_repetition_soma_all_to_one(func, D, bounds, FEs, NP, PathLength, Step
     new_population = np.copy(pop)
     fitness_cache = np.array([func(ind) for ind in pop])
 
-    for _ in range(int(FEs / D)):
+    for _ in range(int(FEs / NP)):
         # Find the best individual
         leader_index = np.argmin(fitness_cache)
         leader = pop[leader_index]
@@ -500,7 +500,7 @@ def parallel_soma_all_to_one(func, D, bounds, FEs, repetitions=30, PathLength=3,
         raise ValueError("Unsupported dimension!")
 
     # Create a pool of worker processes
-    num_cores = repetitions  # Or set it to a desired number of cores or to multiprocessing.cpu_count()
+    num_cores = 8  # Or set it to a desired number of cores or to multiprocessing.cpu_count()
     pool = multiprocessing.Pool(processes=num_cores)
 
     # Use pool.map to parallelize the repetitions
@@ -633,7 +633,7 @@ def parallel_soma_all_to_all(func, D, bounds, FEs, repetitions=30, PathLength=3,
         raise ValueError("Unsupported dimension!")
 
     # Create a pool of worker processes
-    num_cores = repetitions  # Or set it to a desired number of cores or to multiprocessing.cpu_count()
+    num_cores = 8 # Or set it to a desired number of cores or to multiprocessing.cpu_count()
     pool = multiprocessing.Pool(processes=num_cores)
 
     # Use pool.map to parallelize the repetitions
@@ -734,7 +734,7 @@ if __name__ == '__main__':
         pool.map(worker, tasks)
 
     print("All tasks finished!")
-    
+
     start_time = time.time()
     run_algo_over_functions_2D(parallel_soma_all_to_one)
     end_time = time.time()
