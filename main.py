@@ -68,11 +68,13 @@ def tanh(v):
     x = np.linalg.norm(v)
     return np.tanh(x)
 
-
-def logistic_sigmoid(v):
+def rastrigin(v):
     x = np.linalg.norm(v)
-    return 1 / (1 + np.exp(-x))
-
+    n = len(v)
+    total = 10 * n
+    for i in range(n):
+        total += x**2 - 10 * np.cos(2 * np.pi * x)
+    return total
 
 def quadratic_growth(v):
     x = np.linalg.norm(v)
@@ -99,9 +101,12 @@ def logarithmic(v):
     return np.log(x + 1)
 
 
-def power(v):
+def ackley(v):
     x = np.linalg.norm(v)
-    return x ** 3
+    n = len(v)
+    sum1 = sum([xi**2 for xi in v])
+    sum2 = sum([np.cos(2 * np.pi * xi) for xi in v])
+    return -20 * np.exp(-0.2 * np.sqrt(sum1 / n)) - np.exp(sum2 / n) + 20 + np.e
 
 
 def reuleaux_triangle(v):
@@ -114,9 +119,10 @@ def dirichlet(v):
     return np.sin(x) / np.where(x == 0, 1, x)  # Avoid division by zero
 
 
-def logarithmic_growth(v):
+def michalewicz(v):
     x = np.linalg.norm(v)
-    return np.log(x + 1)
+    n = len(v)
+    return -sum([np.sin(xi) * (np.sin((i + 1) * xi**2 / np.pi))**(2 * 10) for i, xi in enumerate(v)])
 
 
 def logarithmic_decay(v):
@@ -186,16 +192,16 @@ functions = [
     gaussian_bell,
     sawtooth,
     tanh,
-    logistic_sigmoid,
+    rastrigin,
     quadratic_growth,
     quadratic_decay,
     square_root,
     cubic,
     logarithmic,
-    power,
+    ackley,
     reuleaux_triangle,
     dirichlet,
-    logarithmic_growth,
+    michalewicz,
     logarithmic_decay,
     inverted_sine,
 ]
