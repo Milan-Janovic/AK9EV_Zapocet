@@ -68,13 +68,15 @@ def tanh(v):
     x = np.linalg.norm(v)
     return np.tanh(x)
 
+
 def rastrigin(v):
     x = np.linalg.norm(v)
     n = len(v)
     total = 10 * n
     for i in range(n):
-        total += x**2 - 10 * np.cos(2 * np.pi * x)
+        total += x ** 2 - 10 * np.cos(2 * np.pi * x)
     return total
+
 
 def quadratic_growth(v):
     x = np.linalg.norm(v)
@@ -104,7 +106,7 @@ def logarithmic(v):
 def ackley(v):
     x = np.linalg.norm(v)
     n = len(v)
-    sum1 = sum([xi**2 for xi in v])
+    sum1 = sum([xi ** 2 for xi in v])
     sum2 = sum([np.cos(2 * np.pi * xi) for xi in v])
     return -20 * np.exp(-0.2 * np.sqrt(sum1 / n)) - np.exp(sum2 / n) + 20 + np.e
 
@@ -122,7 +124,7 @@ def dirichlet(v):
 def michalewicz(v):
     x = np.linalg.norm(v)
     n = len(v)
-    return -sum([np.sin(xi) * (np.sin((i + 1) * xi**2 / np.pi))**(2 * 10) for i, xi in enumerate(v)])
+    return -sum([np.sin(xi) * (np.sin((i + 1) * xi ** 2 / np.pi)) ** (2 * 10) for i, xi in enumerate(v)])
 
 
 def logarithmic_decay(v):
@@ -138,6 +140,83 @@ def inverted_sine(v):
 def hyperbolic_cosine(v):
     x = np.linalg.norm(v)
     return np.cosh(x)
+
+
+######################
+#####################
+
+# NEW FUNCTIONS
+def whitley(v):
+    return np.sum([np.sum([(100 * ((v[i] ** 2 - v[j]) ** 2) + (1 - v[i]) ** 2) ** 2 / 4000 - np.cos(
+        100 * ((v[i] ** 2 - v[j]) ** 2) + (1 - v[i]) ** 2) + 1 for j in range(len(v))]) for i in range(len(v))])
+
+
+def griewank(v):
+    part1 = np.sum(v ** 2 / 4000.0)
+    part2 = np.prod(np.cos(v / np.sqrt(np.arange(1, len(v) + 1))))
+    return 1 + part1 - part2
+
+
+def levy(v):
+    w = 1 + (v - 1) / 4
+    term1 = np.sin(np.pi * w[0]) ** 2
+    term2 = np.sum((w[:-1] - 1) ** 2 * (1 + 10 * np.sin(np.pi * w[:-1] + 1) ** 2))
+    term3 = (w[-1] - 1) ** 2 * (1 + np.sin(2 * np.pi * w[-1]) ** 2)
+    return term1 + term2 + term3
+
+
+def eggholder(v):
+    if len(v) < 2:
+        raise ValueError("Eggholderova funkce vyžaduje minimálně 2 dimenze.")
+
+    summands = [
+        -(v[i + 1] + 47) * np.sin(np.sqrt(np.abs(v[i + 1] + v[i] / 2 + 47))) - v[i] * np.sin(
+            np.sqrt(np.abs(v[i] - (v[i + 1] + 47))))
+        for i in range(len(v) - 1)
+    ]
+    return np.sum(summands)
+
+
+def rosenbrock(v):
+    return np.sum(100.0 * (v[1:] - v[:-1] ** 2) ** 2 + (v[:-1] - 1) ** 2)
+
+
+def zakharov(v):
+    sum1 = np.sum(v ** 2)
+    sum2 = np.sum(0.5 * np.arange(1, len(v) + 1) * v) ** 2
+    sum3 = np.sum(0.5 * np.arange(1, len(v) + 1) * v) ** 4
+    return sum1 + sum2 + sum3
+
+
+def salomon(v):
+    norm_v = np.linalg.norm(v)
+    return 1 - np.cos(2 * np.pi * norm_v) + 0.1 * norm_v
+
+
+def fletcher_powell(v):
+    d = len(v)
+    a = np.array([[np.random.uniform(-100, 100) for _ in range(d)] for _ in range(d)])
+    b = np.array([np.random.uniform(-np.pi, np.pi) for _ in range(d)])
+    c = np.array([np.random.uniform(-100, 100) for _ in range(d)])
+    sum_terms = np.sum([
+        (a[i, :] @ v + b[i] - c[i]) ** 2
+        for i in range(d)
+    ])
+    return sum_terms
+
+
+def schwefel(v):
+    return 418.9829 * len(v) - np.sum(v * np.sin(np.sqrt(np.abs(v))))
+
+
+def dixon_price(v):
+    term1 = (v[0] - 1) ** 2
+    term2 = np.sum([(i + 1) * (2 * v[i] ** 2 - v[i - 1]) ** 2 for i in range(1, len(v))])
+    return term1 + term2
+
+
+functions_to_finish = [whitley, griewank, levy, eggholder, rosenbrock, zakharov, salomon, fletcher_powell, schwefel,
+                       dixon_price]
 
 
 def plot_function(func):
@@ -160,7 +239,7 @@ def plot_function(func):
     plt.ylabel('Y')
 
     # Save to file & clear the plot
-    plt.savefig(f"./Plots/{filename2D}.png")
+    plt.savefig(f"./Plots_New/{filename2D}.png")
     plt.clf()
 
     # 3D plot
@@ -173,7 +252,7 @@ def plot_function(func):
     plt.title("3D Surface Plot - " + func.__name__)
 
     # Save to file & clear the plot to not
-    plt.savefig(f"./Plots/{filename3D}.png")
+    plt.savefig(f"./Plots_New/{filename3D}.png")
     plt.clf()
 
 
@@ -208,8 +287,8 @@ functions = [
 
 
 # Create 2D & 3D plots for all the functions
-# for test_function in functions:
-# plot_function(test_function)
+# for test_function in functions_to_finish:
+#    plot_function(test_function)
 
 
 def differential_evolution(func, D, bounds, FEs, repetitions=30):
@@ -256,7 +335,7 @@ def differential_evolution(func, D, bounds, FEs, repetitions=30):
 
                 # Selection
                 trial_fitness = func(trial)
-                if trial_fitness <  fitness[i]:
+                if trial_fitness < fitness[i]:
                     new_pop[i] = trial
                     new_fitness[i] = trial_fitness
                 else:
@@ -506,7 +585,7 @@ def parallel_soma_all_to_one(func, D, bounds, FEs, repetitions=30, PathLength=3,
         raise ValueError("Unsupported dimension!")
 
     # Create a pool of worker processes
-    num_cores = 8  # Or set it to a desired number of cores or to multiprocessing.cpu_count()
+    num_cores = 10  # Or set it to a desired number of cores or to multiprocessing.cpu_count()
     pool = multiprocessing.Pool(processes=num_cores)
 
     # Use pool.map to parallelize the repetitions
@@ -586,6 +665,7 @@ def single_repetition_soma_all_to_all(func, D, bounds, FEs, NP, PathLength, Step
     fitness_cache = np.array([func(ind) for ind in pop])
 
     for _ in range(int(FEs / NP)):
+        print(_)
         new_population = pop.copy()
 
         # For each individual in the population
@@ -639,7 +719,7 @@ def parallel_soma_all_to_all(func, D, bounds, FEs, repetitions=30, PathLength=3,
         raise ValueError("Unsupported dimension!")
 
     # Create a pool of worker processes
-    num_cores = 8 # Or set it to a desired number of cores or to multiprocessing.cpu_count()
+    num_cores = 10  # Or set it to a desired number of cores or to multiprocessing.cpu_count()
     pool = multiprocessing.Pool(processes=num_cores)
 
     # Use pool.map to parallelize the repetitions
@@ -677,7 +757,7 @@ bounds_30D = np.array([[-100, 100] for _ in range(30)])
 
 def run_algo_over_functions_2D(algo):
     iteration = 0
-    for func in functions:
+    for func in functions_to_finish:
         start_time = time.time()
         result = algo(func, 2, bounds_2D, 2 * 2000)
         end_time = time.time()
@@ -687,12 +767,12 @@ def run_algo_over_functions_2D(algo):
         iteration += 1
         print(iteration)
         print(f"Elapsed Time: {elapsed_time} seconds")
-        write_to_file(f"{algo.__name__}_2D.txt", data)
+        write_to_file(f"{algo.__name__}_2D_NEW.txt", data)
 
 
 def run_algo_over_functions_10D(algo):
     iteration = 0
-    for func in functions:
+    for func in functions_to_finish:
         start_time = time.time()
         result = algo(func, 10, bounds_10D, 10 * 2000)
         end_time = time.time()
@@ -702,12 +782,12 @@ def run_algo_over_functions_10D(algo):
         iteration += 1
         print(iteration)
         print(f"Elapsed Time: {elapsed_time} seconds")
-        write_to_file(f"{algo.__name__}_10D.txt", data)
+        write_to_file(f"{algo.__name__}_10D_NEW.txt", data)
 
 
 def run_algo_over_functions_30D(algo):
     iteration = 0
-    for func in functions:
+    for func in functions_to_finish:
         start_time = time.time()
         result = algo(func, 30, bounds_30D, 30 * 2000)
         end_time = time.time()
@@ -717,7 +797,7 @@ def run_algo_over_functions_30D(algo):
         iteration += 1
         print(iteration)
         print(f"Elapsed Time: {elapsed_time} seconds")
-        write_to_file(f"{algo.__name__}_30D.txt", data)
+        write_to_file(f"{algo.__name__}_30D_NEW.txt", data)
 
 
 def worker(args):
@@ -741,18 +821,19 @@ if __name__ == '__main__':
 
     print("All tasks finished!")
 
+    """
     start_time = time.time()
     run_algo_over_functions_2D(parallel_soma_all_to_one)
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Elapsed Time: {elapsed_time} seconds")
-    
+
     start_time = time.time()
     run_algo_over_functions_10D(parallel_soma_all_to_one)
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Elapsed Time: {elapsed_time} seconds")
-    
+
     start_time = time.time()
     run_algo_over_functions_30D(parallel_soma_all_to_one)
     end_time = time.time()
@@ -778,3 +859,4 @@ if __name__ == '__main__':
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Elapsed Time: {elapsed_time} seconds")
+    """
