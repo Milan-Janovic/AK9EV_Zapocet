@@ -146,9 +146,10 @@ def hyperbolic_cosine(v):
 #####################
 
 # NEW FUNCTIONS
-def whitley(v):
-    return np.sum([np.sum([(100 * ((v[i] ** 2 - v[j]) ** 2) + (1 - v[i]) ** 2) ** 2 / 4000 - np.cos(
-        100 * ((v[i] ** 2 - v[j]) ** 2) + (1 - v[i]) ** 2) + 1 for j in range(len(v))]) for i in range(len(v))])
+def schaffer_f7(v):
+    sum_sq = np.sum(v ** 2)
+    return np.sqrt(sum_sq) * (np.sin(50 * sum_sq**0.1)**2 + 1)
+
 
 
 def griewank(v):
@@ -212,7 +213,7 @@ def dixon_price(v):
     return term1 + term2
 
 
-functions_to_finish = [whitley, griewank, levy, eggholder, rosenbrock, zakharov, salomon, schaffer_n2, schwefel,
+functions_to_finish = [schaffer_f7, griewank, levy, eggholder, rosenbrock, zakharov, salomon, schaffer_n2, schwefel,
                        dixon_price]
 
 
@@ -533,6 +534,7 @@ def single_repetition_soma_all_to_one(func, D, bounds, FEs, NP, PathLength, Step
     fitness_cache = np.array([func(ind) for ind in pop])
 
     for _ in range(int(FEs / NP)):
+        print(_)
         # Find the best individual
         leader_index = np.argmin(fitness_cache)
         leader = pop[leader_index]
@@ -803,7 +805,7 @@ def worker(args):
 
 
 if __name__ == '__main__':
-
+    """
     algorithms = [differential_evolution, differential_evolution_best, pso]
     dimension_functions = [run_algo_over_functions_2D, run_algo_over_functions_10D, run_algo_over_functions_30D]
 
@@ -819,7 +821,6 @@ if __name__ == '__main__':
 
     print("All tasks finished!")
 
-    """
     start_time = time.time()
     run_algo_over_functions_2D(parallel_soma_all_to_one)
     end_time = time.time()
