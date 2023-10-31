@@ -193,8 +193,13 @@ def salomon(v):
     return 1 - np.cos(2 * np.pi * norm_v) + 0.1 * norm_v
 
 
-def de_jong_sphere(v):
-    return np.sum(v ** 2)
+def schaffer_n2(v):
+    if len(v) < 2:
+        raise ValueError("Schafferova funkce N. 2 vyžaduje minimálně 2 dimenze.")
+
+    sum_terms = np.sum(0.5 + (np.sin(v[:-1] ** 2 - v[1:] ** 2) ** 2 - 0.5) /
+                       ((1 + 0.001 * (v[:-1] ** 2 + v[1:] ** 2)) ** 2))
+    return sum_terms
 
 
 def schwefel(v):
@@ -207,7 +212,7 @@ def dixon_price(v):
     return term1 + term2
 
 
-functions_to_finish = [whitley, griewank, levy, eggholder, rosenbrock, zakharov, salomon, de_jong_sphere, schwefel,
+functions_to_finish = [whitley, griewank, levy, eggholder, rosenbrock, zakharov, salomon, schaffer_n2, schwefel,
                        dixon_price]
 
 
@@ -798,7 +803,7 @@ def worker(args):
 
 
 if __name__ == '__main__':
-    """
+
     algorithms = [differential_evolution, differential_evolution_best, pso]
     dimension_functions = [run_algo_over_functions_2D, run_algo_over_functions_10D, run_algo_over_functions_30D]
 
@@ -814,7 +819,7 @@ if __name__ == '__main__':
 
     print("All tasks finished!")
 
-
+    """
     start_time = time.time()
     run_algo_over_functions_2D(parallel_soma_all_to_one)
     end_time = time.time()
@@ -852,4 +857,4 @@ if __name__ == '__main__':
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Elapsed Time: {elapsed_time} seconds")
-    """
+"""
