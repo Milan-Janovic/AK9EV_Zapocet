@@ -193,16 +193,8 @@ def salomon(v):
     return 1 - np.cos(2 * np.pi * norm_v) + 0.1 * norm_v
 
 
-def fletcher_powell(v):
-    d = len(v)
-    a = np.array([[np.random.uniform(-100, 100) for _ in range(d)] for _ in range(d)])
-    b = np.array([np.random.uniform(-np.pi, np.pi) for _ in range(d)])
-    c = np.array([np.random.uniform(-100, 100) for _ in range(d)])
-    sum_terms = np.sum([
-        (a[i, :] @ v + b[i] - c[i]) ** 2
-        for i in range(d)
-    ])
-    return sum_terms
+def de_jong_sphere(v):
+    return np.sum(v ** 2)
 
 
 def schwefel(v):
@@ -215,7 +207,7 @@ def dixon_price(v):
     return term1 + term2
 
 
-functions_to_finish = [whitley, griewank, levy, eggholder, rosenbrock, zakharov, salomon, fletcher_powell, schwefel,
+functions_to_finish = [whitley, griewank, levy, eggholder, rosenbrock, zakharov, salomon, de_jong_sphere, schwefel,
                        dixon_price]
 
 
@@ -287,8 +279,8 @@ functions = [
 
 
 # Create 2D & 3D plots for all the functions
-# for test_function in functions_to_finish:
-#    plot_function(test_function)
+for test_function in functions_to_finish:
+    plot_function(test_function)
 
 
 def differential_evolution(func, D, bounds, FEs, repetitions=30):
@@ -806,6 +798,7 @@ def worker(args):
 
 
 if __name__ == '__main__':
+    """
     algorithms = [differential_evolution, differential_evolution_best, pso]
     dimension_functions = [run_algo_over_functions_2D, run_algo_over_functions_10D, run_algo_over_functions_30D]
 
@@ -821,7 +814,7 @@ if __name__ == '__main__':
 
     print("All tasks finished!")
 
-    """
+
     start_time = time.time()
     run_algo_over_functions_2D(parallel_soma_all_to_one)
     end_time = time.time()
