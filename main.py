@@ -285,8 +285,8 @@ functions = [
 
 
 # Create 2D & 3D plots for all the functions
-for test_function in functions_to_finish:
-    plot_function(test_function)
+# for test_function in functions_to_finish:
+#    plot_function(test_function)
 
 
 def differential_evolution(func, D, bounds, FEs, repetitions=30):
@@ -805,7 +805,6 @@ def worker(args):
 
 
 if __name__ == '__main__':
-    """
     algorithms = [differential_evolution, differential_evolution_best, pso]
     dimension_functions = [run_algo_over_functions_2D, run_algo_over_functions_10D, run_algo_over_functions_30D]
 
@@ -858,4 +857,3 @@ if __name__ == '__main__':
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Elapsed Time: {elapsed_time} seconds")
-"""
